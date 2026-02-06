@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: producer
+
+  rabbitmq:
+    host: localhost
+    port: 5671
+    ssl:
+      enabled: true
+      bundle: producer-bundle
+
+  ssl:
+    bundle:
+      pem:
+        producer-bundle:
+          truststore:
+            certificate: file:certs/ca-cert.pem
+          keystore:
+            certificate: file:certs/producer-cert.pem
+            private-key: file:certs/producer-key.pem
+
+server:
+  port: 8080
+

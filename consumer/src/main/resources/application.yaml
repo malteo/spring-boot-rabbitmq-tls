@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: consumer
+
+  rabbitmq:
+    host: localhost
+    port: 5671
+    ssl:
+      enabled: true
+      bundle: consumer-bundle
+
+  ssl:
+    bundle:
+      pem:
+        consumer-bundle:
+          truststore:
+            certificate: file:certs/ca-cert.pem
+          keystore:
+            certificate: file:certs/consumer-cert.pem
+            private-key: file:certs/consumer-key.pem
+
+server:
+  port: 8081
+

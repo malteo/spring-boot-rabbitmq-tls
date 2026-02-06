@@ -1,0 +1,16 @@
+services:
+  rabbitmq:
+    image: rabbitmq:4-management
+    ports:
+      - "5671:5671"
+      - "15671:15671"
+    volumes:
+      - ./certs:/etc/rabbitmq/certs:ro
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+      - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

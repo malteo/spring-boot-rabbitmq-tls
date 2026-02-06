@@ -1,0 +1,95 @@
+{
+  "rabbit_version": "3.13.0",
+  "rabbitmq_version": "3.13.0",
+  "users": [
+    {
+      "name": "admin",
+      "password": "admin",
+      "tags": ["administrator"]
+    },
+    {
+      "name": "producer",
+      "password": "",
+      "tags": ["producer"]
+    },
+    {
+      "name": "consumer",
+      "password": "",
+      "tags": ["consumer"]
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "admin",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "producer",
+      "vhost": "/",
+      "configure": "",
+      "write": "messages\\.exchange|input\\.queue",
+      "read": "output\\.queue"
+    },
+    {
+      "user": "consumer",
+      "vhost": "/",
+      "configure": "",
+      "write": "messages\\.exchange|output\\.queue",
+      "read": "input\\.queue"
+    }
+  ],
+  "queues": [
+    {
+      "name": "input.queue",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "output.queue",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "messages.exchange",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "messages.exchange",
+      "vhost": "/",
+      "destination": "input.queue",
+      "destination_type": "queue",
+      "routing_key": "input",
+      "arguments": {}
+    },
+    {
+      "source": "messages.exchange",
+      "vhost": "/",
+      "destination": "output.queue",
+      "destination_type": "queue",
+      "routing_key": "output",
+      "arguments": {}
+    }
+  ]
+}
+
