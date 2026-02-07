@@ -2,6 +2,34 @@
 
 A multi-module Maven project demonstrating secure communication between Spring Boot applications using RabbitMQ with TLS/SSL authentication using PEM certificates.
 
+## Quick Start
+
+Get up and running in two commands:
+
+```bash
+./mvnw package && docker compose up
+```
+
+This will:
+1. Build both Spring Boot applications and create Docker images
+2. Start RabbitMQ with TLS configuration
+3. Start the producer (port 8080) and consumer services
+4. All services communicate securely using TLS certificates
+
+**Prerequisites**: Docker and Docker Compose installed. The certificates are already generated and included in the `certs/` directory.
+
+### Test the System
+
+Once all services are running:
+
+```bash
+curl -X POST http://localhost:8080/messages \
+  -H "Content-Type: application/json" \
+  -d '"Hello RabbitMQ with TLS!"'
+```
+
+You'll see the message flow through the system in the Docker logs.
+
 ## Project Structure
 
 ```
@@ -47,9 +75,11 @@ spring-boot-rabbitmq-tls/
 4. **Consumer** sends enriched message to `output.queue`
 5. **Producer** listens on `output.queue` and logs received enriched message
 
-## Generate TLS Certificates
+## TLS Certificates
 
-Before running the applications, you need to generate TLS certificates for secure communication. All certificates will be in PEM format.
+**Note**: This project includes pre-generated TLS certificates in the `certs/` directory, so you can run the application immediately without generating certificates first.
+
+If you need to regenerate certificates (e.g., for production use or if certificates have expired):
 
 ### Quick Start (Recommended)
 
@@ -217,25 +247,64 @@ Your `certs/` directory should now contain:
 
 ## Build the Project
 
-Build both modules:
+Build both modules and create Docker images:
 
 ```bash
-./mvnw clean install
+./mvnw package
 ```
+
+This will:
+- Compile and package both producer and consumer applications
+- Create Docker images: `sbrt-producer` and `sbrt-consumer`
+- Run unit tests
 
 ## Run the Applications
 
-### Step 1: Start RabbitMQ with TLS
+### Option 1: Docker Compose (Recommended)
 
-Start RabbitMQ using Docker Compose:
+Start all services with a single command:
 
 ```bash
-docker-compose up -d
+docker compose up
 ```
 
-Wait for RabbitMQ to be ready (check with `docker-compose logs -f rabbitmq`).
+This will start:
+- **RabbitMQ** with TLS on port 5671 (management UI on port 15671)
+- **Producer** application on port 8080
+- **Consumer** application
 
-### Step 2: Start Consumer Application
+All services communicate securely using TLS certificates. The applications will automatically connect to RabbitMQ once it's healthy.
+
+To run in detached mode:
+```bash
+docker compose up -d
+```
+
+View logs:
+```bash
+docker compose logs -f
+```
+
+Stop all services:
+```bash
+docker compose down
+```
+
+### Option 2: Run Locally with Spring Boot Maven Plugin
+
+If you prefer to run the applications locally (not in Docker):
+
+#### Step 1: Start RabbitMQ with TLS
+
+Start only RabbitMQ using Docker Compose:
+
+```bash
+docker compose up -d rabbitmq
+```
+
+Wait for RabbitMQ to be ready (check with `docker compose logs -f rabbitmq`).
+
+#### Step 2: Start Consumer Application
 
 In a new terminal:
 
@@ -245,7 +314,7 @@ In a new terminal:
 
 The consumer will start on port 8081 and listen for messages on `input.queue`.
 
-### Step 3: Start Producer Application
+#### Step 3: Start Producer Application
 
 In another terminal:
 
@@ -372,10 +441,19 @@ docker-compose logs rabbitmq | grep -i permission
 Stop all services:
 
 ```bash
-# Stop Spring Boot applications (Ctrl+C in their terminals)
+docker compose down
+```
 
-# Stop RabbitMQ
-docker-compose down
+If you ran applications locally with the Spring Boot Maven plugin, stop them with Ctrl+C in their terminals, then stop RabbitMQ:
+
+```bash
+docker compose down
+```
+
+Remove generated images (optional):
+
+```bash
+docker rmi sbrt-producer sbrt-consumer
 ```
 
 Remove generated certificates (if needed):

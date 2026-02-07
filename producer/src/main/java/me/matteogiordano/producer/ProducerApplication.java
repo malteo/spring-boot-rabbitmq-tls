@@ -22,7 +22,7 @@ public class ProducerApplication {
 
     @Bean
     public ConnectionFactoryCustomizer connectionFactoryCustomizer() {
-        return it -> it.setSaslConfig( DefaultSaslConfig.EXTERNAL);
+        return it -> it.setSaslConfig(DefaultSaslConfig.EXTERNAL);
     }
 }
 

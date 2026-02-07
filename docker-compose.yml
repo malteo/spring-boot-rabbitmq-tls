@@ -1,4 +1,5 @@
 services:
+
   rabbitmq:
     image: rabbitmq:4-management
     ports:
@@ -14,3 +15,31 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  producer:
+    image: sbrt-producer
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./certs:/app/certs:ro
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_SSL_BUNDLE_PEM_RABBITMQ_TRUSTSTORE_CERTIFICATE: file:/app/certs/ca-cert.pem
+      SPRING_SSL_BUNDLE_PEM_RABBITMQ_KEYSTORE_CERTIFICATE: file:/app/certs/producer-cert.pem
+      SPRING_SSL_BUNDLE_PEM_RABBITMQ_KEYSTORE_PRIVATE-KEY: file:/app/certs/producer-key.pem
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  consumer:
+    image: sbrt-consumer
+    volumes:
+      - ./certs:/app/certs:ro
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_SSL_BUNDLE_PEM_RABBITMQ_TRUSTSTORE_CERTIFICATE: file:/app/certs/ca-cert.pem
+      SPRING_SSL_BUNDLE_PEM_RABBITMQ_KEYSTORE_CERTIFICATE: file:/app/certs/consumer-cert.pem
+      SPRING_SSL_BUNDLE_PEM_RABBITMQ_KEYSTORE_PRIVATE-KEY: file:/app/certs/consumer-key.pem
+    depends_on:
+      rabbitmq:
+        condition: service_healthy

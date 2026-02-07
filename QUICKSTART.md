@@ -8,21 +8,59 @@ This is a multi-module Maven project demonstrating secure communication between 
 - **Consumer**: Background service (port 8081) that listens to `input.queue`, enriches messages, and sends them to `output.queue`
 - **RabbitMQ**: Message broker with TLS/SSL (port 5671) and management UI (port 15671)
 
+**Note**: TLS certificates are pre-generated and included in the `certs/` directory, so you can run immediately without additional setup.
+
 ## Quick Setup
 
-### 1. Generate Certificates
+### Start Everything
+
+Run the complete stack with just two commands:
+
 ```bash
-./generate-certs.sh
+./mvnw package && docker compose up
 ```
 
-This creates all necessary PEM certificates in the `certs/` directory.
+This will:
+1. **Build** both Spring Boot applications and create Docker images
+2. **Start** RabbitMQ with TLS configuration
+3. **Start** producer and consumer services
+4. All services communicate securely using pre-generated TLS certificates
 
-### 2. Start RabbitMQ
+Wait ~15-20 seconds for all services to start.
+
+### Test the System
 ```bash
-docker-compose up -d
+curl -X POST http://localhost:8080/messages \
+  -H "Content-Type: application/json" \
+  -d '"Hello from producer!"'
 ```
 
-Wait ~10 seconds for RabbitMQ to fully start.
+### Check Logs
+View all service logs:
+```bash
+docker compose logs -f
+```
+
+Or view individual services:
+```bash
+docker compose logs -f producer
+docker compose logs -f consumer
+docker compose logs -f rabbitmq
+```
+
+## Alternative: Local Development
+
+If you prefer to run applications locally (not in Docker):
+
+### 1. Start RabbitMQ Only
+```bash
+docker compose up -d rabbitmq
+```
+
+### 2. Build Applications
+```bash
+./mvnw package
+```
 
 ### 3. Start Applications
 
@@ -138,25 +176,37 @@ spring:
 
 ### RabbitMQ not starting?
 ```bash
-docker-compose logs rabbitmq
+docker compose logs rabbitmq
 ```
 
 ### Certificate errors?
-Regenerate certificates:
+The certificates are pre-generated in the `certs/` directory. If you need to regenerate them:
 ```bash
 rm -rf certs/
 ./generate-certs.sh
 ```
 
 ### Applications not connecting?
-1. Verify RabbitMQ is running: `docker-compose ps`
+1. Verify RabbitMQ is running: `docker compose ps`
 2. Check certificates exist: `ls -la certs/`
-3. Review application logs for SSL errors
+3. Review application logs: `docker compose logs producer` or `docker compose logs consumer`
+4. Ensure RabbitMQ is healthy: `docker compose logs rabbitmq | grep "started"`
+
+### Need to rebuild after code changes?
+```bash
+./mvnw package
+docker compose up --build
+```
 
 ## Clean Up
 ```bash
-# Stop applications (Ctrl+C in their terminals)
-docker-compose down
+docker compose down
+```
+
+To also remove built images:
+```bash
+docker compose down
+docker rmi sbrt-producer sbrt-consumer
 ```
 
 ## Technology Stack
@@ -175,4 +225,3 @@ docker-compose down
 - Add monitoring with Micrometer/Prometheus
 
 For detailed documentation, see [README.md](README.md).
-
